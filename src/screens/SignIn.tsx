@@ -1,4 +1,4 @@
-import { VStack, Image, Text, Center, Heading, ScrollView } from "native-base";
+import { VStack, Image, Text, Center, Heading, ScrollView, useToast } from "native-base";
 
 import LogoSvg from '@assets/logo.svg';
 import BGImg from '@assets/background.png';
@@ -6,12 +6,15 @@ import BGImg from '@assets/background.png';
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
 
+import { useAuth } from "@hooks/useAuth";
+
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 import { Input } from '@components/Input'
 import { Button } from "@components/Button";
+import { AppError } from "@utils/AppError";
 
 type FormDataProps = {
   email: string
@@ -27,15 +30,30 @@ export function SignIn() {
   const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
     resolver: yupResolver(signinSchema),
   })
-
   const navigation = useNavigation<AuthNavigatorRoutesProps>()
+  const { signIn } = useAuth()
+  const toast = useToast()
 
   function handleNewAccount() {
     navigation.navigate('Register')
   }
 
-  function onSubmit(data: FormDataProps) {
-    console.log(data)
+  async function onSubmit({ email, password }: FormDataProps) {
+    try {
+      await signIn(email, password)
+    } catch (error) {
+      const isAppError = error instanceof AppError
+
+      const title = isAppError
+        ? error.message
+        : `We can't create your account now. Please try again later`
+
+      toast.show({
+        title,
+        placement: 'top',
+        bg:'red.500'
+      })
+    }
   }
 
   return (
@@ -88,6 +106,7 @@ export function SignIn() {
                 onChangeText={onChange}
                 value={value}
                 errorMessage={errors.password?.message}
+                onSubmitEditing={handleSubmit(onSubmit)}
               />
             )}
           />

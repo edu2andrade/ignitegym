@@ -1,3 +1,5 @@
+import { useAuth } from "@hooks/useAuth";
+
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 
 import { AuthRoutes } from "./auth.routes";
@@ -6,6 +8,9 @@ import { AppRoutes } from "./app.routes";
 import { useTheme, Box } from 'native-base'
 
 export function Routes() {
+  const { user } = useAuth()
+  console.log("LOGGED USER --> ", user)
+
   const { colors } = useTheme()
   const theme = DefaultTheme;
   theme.colors.background = colors.gray[700]
