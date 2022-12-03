@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { VStack, Image, Text, Center, Heading, ScrollView, useToast } from "native-base";
 
 import LogoSvg from '@assets/logo.svg';
@@ -27,6 +28,7 @@ const signinSchema = yup.object({
 })
 
 export function SignIn() {
+  const [isLoading, setIsLoading] = useState(false)
   const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
     resolver: yupResolver(signinSchema),
   })
@@ -40,6 +42,7 @@ export function SignIn() {
 
   async function onSubmit({ email, password }: FormDataProps) {
     try {
+      setIsLoading(true)
       await signIn(email, password)
     } catch (error) {
       const isAppError = error instanceof AppError
@@ -47,7 +50,9 @@ export function SignIn() {
       const title = isAppError
         ? error.message
         : `We can't create your account now. Please try again later`
-
+        
+      setIsLoading(false)
+      
       toast.show({
         title,
         placement: 'top',
@@ -114,6 +119,7 @@ export function SignIn() {
           <Button
             title="Access"
             onPress={handleSubmit(onSubmit)}
+            isLoading={isLoading}
           />
         
         </Center>

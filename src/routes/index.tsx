@@ -9,7 +9,6 @@ import { useTheme, Box } from 'native-base'
 
 export function Routes() {
   const { user } = useAuth()
-  console.log("LOGGED USER --> ", user)
 
   const { colors } = useTheme()
   const theme = DefaultTheme;
@@ -18,7 +17,7 @@ export function Routes() {
   return (
     <Box flex={1} bg="gray.700">
       <NavigationContainer theme={theme}>
-        <AuthRoutes />
+        {user.id ? <AppRoutes /> : <AuthRoutes />}
       </NavigationContainer>
     </Box>
   )
