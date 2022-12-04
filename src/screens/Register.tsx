@@ -15,6 +15,8 @@ import BGImg from '@assets/background.png';
 import { Input } from '@components/Input'
 import { Button } from "@components/Button";
 import { AppError } from "@utils/AppError";
+import { useState } from "react";
+import { useAuth } from "@hooks/useAuth";
 
 type FormDataProps = {
   name: string
@@ -31,19 +33,24 @@ const registerSchema = yup.object({
 })
 
 export function Register() {
+  const [isLoading, setIsLoading] = useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
     resolver: yupResolver(registerSchema)
   })
 
   const toast = useToast()
+  const { signIn } = useAuth()
 
   async function onSubmit({ name, email, password }: FormDataProps) {
     // using axios:
     try {
-      const response = await api.post('/users', { name, email, password })
-      console.log(response.data)
+      setIsLoading(true)
+      await api.post('/users', { name, email, password })
+      await signIn(email, password)
+      
     } catch (error) {
+      setIsLoading(false)
       const isAppError = error instanceof AppError
       const title = isAppError 
         ? error.message
@@ -170,6 +177,7 @@ export function Register() {
           <Button
             title="Create & Access"
             onPress={handleSubmit(onSubmit)}
+            isLoading={isLoading}
           />
         </Center>
         <Button
