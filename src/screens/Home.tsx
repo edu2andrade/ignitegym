@@ -1,35 +1,90 @@
-import { useState } from 'react'
-import { useNavigation } from '@react-navigation/native'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { AppNavigatorRoutesProps } from '@routes/app.routes'
 
-import  { VStack, FlatList, HStack, Heading, Text } from 'native-base'
+import { api } from '@services/api'
+
+import  { VStack, FlatList, HStack, Heading, Text, useToast } from 'native-base'
 
 import { HomeHeader } from '@components/HomeHeader'
 import { Category } from '@components/Category'
 import { ExerciseCard } from '@components/ExerciseCard'
+import { AppError } from '@utils/AppError'
+import { ExerciseDTO } from '@dtos/ExercisesDTO'
+import { Loading } from '@components/Loading'
 
 export function Home() {
-  const [categories, setCategories] = useState(['back', 'shoulders', 'chest', 'legs', 'biceps', 'triceps', 'abs'])
-  const [exercises, setExercises] = useState(['Chest Press', 'Leg Press', 'Lat Pull Down', 'Deadlift'])
-  const [categorySelected, setCategorySelected] = useState('back')
+  const [isLoading, setIsLoading] = useState(true)
+  const [exercises, setExercises] = useState<ExerciseDTO[]>([])
+  const [exercisesCategories, setExercisesCategories] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState('legs')
 
   const navigation = useNavigation<AppNavigatorRoutesProps>()
+  const toast = useToast()
 
-  function handleOpenExerciseDetails() {
-    navigation.navigate('exercise')
+  function handleOpenExerciseDetails(exerciseId: string) {
+    navigation.navigate('exercise', { exerciseId })
   }
+  async function fetchExercisesCategories() {
+    try {
+      const response = await api.get('/groups')
+      setExercisesCategories(response.data)
+      
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError 
+        ? error.message
+        : `We can't load the exercises categories now. Please try again later` 
+        
+      toast.show({
+        title,
+        placement: 'top',
+        bg:'red.500'
+      })
+    }
+  }
+  async function fetchExercisesByCategory() {
+    try {
+      setIsLoading(true)
+
+      const response = await api.get(`/exercises/bygroup/${selectedCategory}`)
+      setExercises(response.data)
+      
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError 
+        ? error.message
+        : `We can't load the exercises now. Please try again later` 
+        
+      toast.show({
+        title,
+        placement: 'top',
+        bg:'red.500'
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchExercisesCategories()
+  }, [])
+
+  useFocusEffect(useCallback(() => {
+    fetchExercisesByCategory()
+  }, [selectedCategory]))
 
   return (
     <VStack flex={1}>
       <HomeHeader />
       <FlatList
-        data={categories}
+        data={exercisesCategories}
         keyExtractor={item => item}
         renderItem={({ item }) => (
           <Category
             name={item}
-            isActive={categorySelected === item}
-            onPress={() => setCategorySelected(item)}
+            isActive={selectedCategory === item}
+            onPress={() => setSelectedCategory(item)}
           />
         )}
         horizontal
@@ -39,35 +94,39 @@ export function Home() {
         maxH={10}
         minH={10}
       />
-      <VStack flex={1} px={8}>
-        <HStack justifyContent="space-between" mb={5}>
-          <Heading
-            color="gray.200"
-            fontSize="md"
-            fontFamily="heading"
-          >
-            Exercises
-          </Heading>
-          <Text
-            color="gray.200"
-            fontSize="sm"
-          >
-            {exercises.length}
-          </Text>
-        </HStack>
-        <FlatList
-          data={exercises}
-          keyExtractor={item => item}
-          renderItem={({ item }) => (
-            <ExerciseCard
-              name={item}
-              onPress={handleOpenExerciseDetails}
+      {
+        isLoading 
+        ? <Loading />
+        : <VStack flex={1} px={8}>
+            <HStack justifyContent="space-between" mb={5}>
+              <Heading
+                color="gray.200"
+                fontSize="md"
+                fontFamily="heading"
+              >
+                Exercises
+              </Heading>
+              <Text
+                color="gray.200"
+                fontSize="sm"
+              >
+                {exercises.length}
+              </Text>
+            </HStack>
+            <FlatList
+              data={exercises}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <ExerciseCard
+                  data={item}
+                  onPress={() => handleOpenExerciseDetails(item.id)}
+                />
+              )}
+              showsVerticalScrollIndicator={false}
+              _contentContainerStyle={{ pb: 20 }}
             />
-          )}
-          showsVerticalScrollIndicator={false}
-          _contentContainerStyle={{ pb: 20 }}
-        />
-      </VStack>
+          </VStack>
+      }
     </VStack>
   )
 }

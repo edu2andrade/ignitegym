@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react'
 import { TouchableOpacity } from 'react-native'
-import  { VStack, Icon, HStack, Heading, Text, Image, Box, ScrollView } from 'native-base'
+import  { VStack, Icon, HStack, Heading, Text, Image, Box, ScrollView, useToast } from 'native-base'
 
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { AppNavigatorRoutesProps } from '@routes/app.routes'
+
+import { AppError } from '@utils/AppError'
+import { api } from '@services/api'
 
 import { Feather } from '@expo/vector-icons'
 import BodySvg from '@assets/body.svg'
@@ -10,12 +14,55 @@ import SeriesSvg from '@assets/series.svg'
 import RepetitionsSvg from '@assets/repetitions.svg'
 import { Button } from '@components/Button'
 
+import { ExerciseDTO } from '@dtos/ExercisesDTO'
+import { Loading } from '@components/Loading'
+
+type RouteParamsProps = {
+  exerciseId: string
+}
+
 export function Exercise() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [exercise, setExercise] = useState<ExerciseDTO>({} as ExerciseDTO)
   const navigation = useNavigation<AppNavigatorRoutesProps>()
+
+  const route = useRoute()
+  const toast = useToast()
+
+  const { exerciseId } = route.params as RouteParamsProps
+
+
+  async function fetchExerciseDetails() {
+    try {
+      setIsLoading(true)
+      
+      const response = await api.get(`/exercises/${exerciseId}`)
+      setExercise(response.data)
+      
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError 
+        ? error.message
+        : `We can't load the exercise details now. Please try again later` 
+        
+      toast.show({
+        title,
+        placement: 'top',
+        bg:'red.500'
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   function handleGoBack() {
     navigation.goBack()
   }
+
+  useEffect(() => {
+    fetchExerciseDetails()
+  }, [exerciseId])
+
   return (
     <VStack flex={1}>
       <VStack bg="gray.600" pt={12} px={8}>
@@ -39,7 +86,7 @@ export function Exercise() {
               fontFamily="heading"
               flexShrink={1}
             >
-              Lat Pull Down
+              {exercise.name}
             </Heading>
             <HStack alignItems="center">
               <BodySvg />
@@ -49,53 +96,56 @@ export function Exercise() {
                 textTransform="capitalize"
                 fontSize="sm"
               >
-                Back
+                {exercise.group}
               </Text>
             </HStack>
           </HStack>
       </VStack>
-      <ScrollView>
-        <VStack p={8}>
-            <Image
-              source={{ uri: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse4.mm.bing.net%2Fth%3Fid%3DOIP.Bn17nXnMlADgromKUdtM2QHaHa%26pid%3DApi&f=1&ipt=34cbd0f2b787db8756fc7e08b2858ef5c7ef085acbf011874a6890b467f4575c&ipo=images' }}
-              alt="Exercise Name"
-              w="full"
-              h="80"
-              resizeMode='cover'
-              mb={3}
-              rounded="lg"
-            />
-            <Box
-              bg="gray.600"
-              pb={4}
-              px={4}
-              rounded="md"
-            >
-              <HStack
-                alignItems="center"
-                justifyContent="space-around"
-                mb={6}
-                mt={5}
-              >
-                <HStack>
-                  <SeriesSvg />
-                  <Text color="gray.200" ml={2}>
-                    3 sets
-                  </Text>
-                </HStack>
-                <HStack>
-                  <RepetitionsSvg />
-                  <Text color="gray.200" ml={2}>
-                    12 Reps
-                  </Text>
-                </HStack>
-              </HStack>
-              <Button
-                title='Mark as done'
-              />
-            </Box>
-        </VStack>
-      </ScrollView>
+      {isLoading
+        ? <Loading />
+        : <ScrollView>
+            <VStack p={8}>
+                <Image
+                  source={{ uri: `${api.defaults.baseURL}/exercise/demo/${exercise.demo}` }}
+                  alt="Exercise Name"
+                  w="full"
+                  h="80"
+                  resizeMode='cover'
+                  mb={3}
+                  rounded="lg"
+                />
+                <Box
+                  bg="gray.600"
+                  pb={4}
+                  px={4}
+                  rounded="md"
+                >
+                  <HStack
+                    alignItems="center"
+                    justifyContent="space-around"
+                    mb={6}
+                    mt={5}
+                  >
+                    <HStack>
+                      <SeriesSvg />
+                      <Text color="gray.200" ml={2}>
+                        {exercise.series} sets
+                      </Text>
+                    </HStack>
+                    <HStack>
+                      <RepetitionsSvg />
+                      <Text color="gray.200" ml={2}>
+                        {exercise.repetitions} Reps
+                      </Text>
+                    </HStack>
+                  </HStack>
+                  <Button
+                    title='Mark as done'
+                  />
+                </Box>
+            </VStack>
+          </ScrollView>
+      }
     </VStack>
   )
 }
