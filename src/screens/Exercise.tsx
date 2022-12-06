@@ -22,6 +22,7 @@ type RouteParamsProps = {
 }
 
 export function Exercise() {
+  const [submittingRegister, setSubmittingRegister] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [exercise, setExercise] = useState<ExerciseDTO>({} as ExerciseDTO)
   const navigation = useNavigation<AppNavigatorRoutesProps>()
@@ -52,6 +53,35 @@ export function Exercise() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function handleExerciseHistoryRegister() {
+    try {
+      setSubmittingRegister(true)
+      await api.post('/history', { exercise_id: exerciseId })
+
+      toast.show({
+        title: 'Well done! Keep going!',
+        placement: 'top',
+        bg:'green.700'
+      })
+
+      navigation.navigate('home')
+      
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      const title = isAppError 
+        ? error.message
+        : `We can't register your exercise now. Please try again later` 
+        
+      toast.show({
+        title,
+        placement: 'top',
+        bg:'red.500'
+      })
+    } finally {
+      setSubmittingRegister(false)
     }
   }
 
@@ -141,6 +171,8 @@ export function Exercise() {
                   </HStack>
                   <Button
                     title='Mark as done'
+                    isLoading={submittingRegister}
+                    onPress={handleExerciseHistoryRegister}
                   />
                 </Box>
             </VStack>

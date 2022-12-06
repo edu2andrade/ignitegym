@@ -28,8 +28,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<UserDTO>({} as UserDTO)
   const [isLoadingUserStorageData, setIsLoadingUserStorageData] = useState(true)
 
-  // need to be async?? ----------------------------------------------------------------
-  async function userAndTokenUpdate(userData: UserDTO, token: string){
+  function userAndTokenUpdate(userData: UserDTO, token: string){
       // Send token info into headers and update user
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(userData)
@@ -53,7 +52,6 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     try {
       const { data } = await api.post('/sessions', { email, password })
       if (data.user && data.token) {
-        // await here?
         userAndTokenUpdate(data.user, data.token)
         await storageSaveUserAndToken(data.user, data.token)
       }

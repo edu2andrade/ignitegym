@@ -11,7 +11,7 @@
 - [x] JWT Authentication
 - [ ] Fetching backend data
   - [x] Fetching exercises data
-  - [ ] Register, load, list and show data history
+  - [x] Register, load, list and show data history
   - [ ] Load and update user data in Profile
   - [ ] Validating passwods
   - [ ] Update user data in backend
