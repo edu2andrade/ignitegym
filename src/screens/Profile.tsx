@@ -10,6 +10,8 @@ import { Controller, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
+import defaultUserPhotoImg from '@assets/userPhotoDefault.png'
+
 import { ScreenHeader } from '@components/ScreenHeader'
 import { UserPhoto } from '@components/UserPhoto'
 import { Input } from '@components/Input'
@@ -57,7 +59,7 @@ const profileSchema = yup.object({
 export function Profile() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [photoIsLoading, setPhotoIsLoading] = useState(false)
-  const [userPhoto, setUserPhoto] = useState('https://github.com/edu2andrade.png')
+  
 
   const toast = useToast()
   const { user, updateUserProfile } = useAuth()
@@ -83,10 +85,9 @@ export function Profile() {
         return
       }
       if (photoSelected.assets[0].uri) {
-
         // checking if the imagesize aren't too big...
         const photoInfo = await FileSystem.getInfoAsync(photoSelected.assets[0].uri)
-        if(photoInfo.size && (photoInfo.size / 1024 /1024) > 5) {
+        if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 5) {
           return toast.show({
             title: 'The selected image is too big, Maximum size permitted is 5MB.',
             placement: 'top',
@@ -94,7 +95,34 @@ export function Profile() {
           })
         }
         
-        setUserPhoto(photoSelected.assets[0].uri)
+        const fileExtension = photoSelected.assets[0].uri.split('.').pop()
+
+        const photoFile = {
+          name: `${user.name}.${fileExtension}`.toLowerCase(),
+          uri: photoSelected.assets[0].uri,
+          type: `${photoSelected.assets[0].type}/${fileExtension}`
+        } as any
+
+        // creting a new form to send photo info to backend (cannot be sended by the body)
+        const userPhotoUploadForm = new FormData()
+        userPhotoUploadForm.append('avatar', photoFile)
+        // sending form to backend
+        const avatarUpdatedResponse = await api.patch('/users/avatar', userPhotoUploadForm, {
+          // informing the headers we are sending now a form instead of a JSON...
+          headers: {
+            'Content-Type':'multipart/form-data'
+          }
+        })
+
+        const userUpdated = user
+        userUpdated.avatar = avatarUpdatedResponse.data.avatar
+        updateUserProfile(userUpdated)
+
+        toast.show({
+          title: 'Photo uploaded successfully!',
+          placement: 'top',
+          bg: 'green.500'
+        })
       }
       
     } catch (error) {
@@ -158,7 +186,11 @@ export function Profile() {
             />
             :
             <UserPhoto
-              source={{ uri: userPhoto }}
+            source={
+              user.avatar
+              ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+              : defaultUserPhotoImg
+            }
               alt='Profile picture of a user smiling'
               size={PHOTO_SIZE}
             />

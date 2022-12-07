@@ -12,8 +12,8 @@
 - [ ] Fetching backend data
   - [x] Fetching exercises data
   - [x] Register, load, list and show data history
-  - [ ] Load and update user data in Profile
-  - [ ] Validating passwods
-  - [ ] Update user data in backend
-- [ ] Image upload
+  - [x] Load and update user data in Profile
+  - [x] Validating passwods
+  - [x] Update user data in backend
+- [x] Image upload
 - [ ] Refresh Token
