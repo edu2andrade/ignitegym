@@ -29,7 +29,7 @@ const registerSchema = yup.object({
   name: yup.string().required('Name is required'),
   email: yup.string().required('E-mail is required').email('Invalid email'),
   password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
-  confirm_password: yup.string().required('Confirm your Password').oneOf([yup.ref('password'), null], 'Password does not macth')
+  confirm_password: yup.string().required('Confirm your Password').oneOf([yup.ref('password'), null], 'Passwords does not macth')
 })
 
 export function Register() {
