@@ -26,7 +26,7 @@ export function HistoryCard({ data }: HistoryCardProps) {
           textTransform="capitalize"
           numberOfLines={1}
         >
-          {data.category}
+          {data.group}
         </Heading>
         <Text
           color="gray.200"
