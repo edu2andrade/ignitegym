@@ -5,6 +5,7 @@
 - [x] React Hook Form
 - [x] YUP
 - [x] Context API
+- [x] Axios
 
 ## To do :white_check_mark:
 
