@@ -25,12 +25,12 @@
 
 ## :octocat: How to run
 
-> You'll need to install:
+#### You need to install:
 
 - <a href="https://docs.expo.dev/get-started/installation/" target="_blank">Expo-CLI</a> in your computer
 - <a href="https://expo.dev/client" target="_blank">Expo Go</a> in your mobile phone.
 
-> **Clone the API repository** (developed by [Rodrigo Gonçalves](https://github.com/rodrigorgtic)):
+#### Clone the API repository (developed by [Rodrigo Gonçalves](https://github.com/rodrigorgtic)):
 
 ```sh
 git clone git@github.com:rodrigorgtic/ignitegym-api.git
@@ -48,7 +48,7 @@ Start development environment:
 npm run start
 ```
 
-> **Clone this repository:**
+#### **Clone this repository:**
 
 ```sh
 git clone git@github.com:edu2andrade/ignitegym.git
@@ -67,8 +67,6 @@ npm run start
 ```
 
 > Start Expo Go App in your device and connect the devices through QR Code. Devices must be in the same network.
-
----
 
 ## :alien: Author
 
